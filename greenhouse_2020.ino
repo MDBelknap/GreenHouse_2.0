@@ -23,7 +23,7 @@ DHT dht(DHTPIN, DHTTYPE);
 portMUX_TYPE synch = portMUX_INITIALIZER_UNLOCKED;
 
 void IRAM_ATTR alarm() {
-  portENTER_CRITICAL(&synch);  
+  portENTER_CRITICAL(&synch);
   waterSafety = false;
   portEXIT_CRITICAL(&synch);
 }
@@ -98,8 +98,39 @@ void heating() {
     digitalWrite(heaterValve, LOW);
     digitalWrite(pump, LOW);
   }
-  
+  if (temp > 80){
+    digitalWrite(fan, HIGH);
   }
+  else{
+    digitalWrite(fan, LOW);
+  }
+}
+void lighting() {
+  int lightState = 0;
+  int lightGoal = 1000;
+  int lightThreshold = 50;
+  int lightReading = 0;
+  uint32_t lastReading = 0;
+  uint32_t readFrequency = 30000;
+  
+
+  if ((millis() - lastReading) > readFrequency) {
+    int k = analogRead(lightSensor);
+    lightReading = map(k, 0, 255, 0, 100);
+    if (lightReading > lightThreshold) {
+      lightState++;
+      lastReading = millis();
+    }
+  }
+  if (lightState < lightGoal && lightReading < lightThreshold) {
+    digitalWrite(growLight, HIGH);
+    lightState++;
+  }
+  else if(lightState > lightGoal && lightReading < lightThreshold){
+    digitalWrite(growLight, LOW);
+    lightState = 0;
+  }
+}
 
 
 
@@ -109,6 +140,7 @@ void loop() {
 
   watering();
   heating();
+  lighting();
 
 
 }
