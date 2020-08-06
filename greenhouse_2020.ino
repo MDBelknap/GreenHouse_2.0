@@ -20,8 +20,12 @@ long currentTime = 0;
 
 DHT dht(DHTPIN, DHTTYPE);
 
-void alarm() {
+portMUX_TYPE synch = portMUX_INITIALIZER_UNLOCKED;
+
+void IRAM_ATTR alarm() {
+  portENTER_CRITICAL(&synch);  
   waterSafety = false;
+  portEXIT_CRITICAL(&synch);
 }
 
 void connectToNetwork() {
